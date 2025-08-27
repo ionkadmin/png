@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft版本镜像站</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            margin: 0;
+        }
+        
+        /* 布局结构 */
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* 侧边栏 */
+        .sidebar {
+            width: 250px;
+            background: #f8fafc;
+            border-right: 1px solid #e2e8f0;
+            padding: 20px;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .sidebar-header {
+            padding: 20px 0;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 30px;
+        }
+        
+        .sidebar-header h2 {
+            color: #1a202c;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            color: #4a5568;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: background 0.2s;
+        }
+        
+        .nav-item:hover {
+            background: #edf2f7;
+            color: #2d3748;
+        }
+        
+        .nav-item.active {
+            background: #4299e1;
+            color: white;
+        }
+        
+        /* 导航区域样式 */
+        .nav-section {
+            margin-bottom: 24px;
+        }
+        
+        .nav-section-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            padding: 0 16px;
+        }
+        
+        /* 子导航项样式 */
+        .nav-subitem {
+            display: flex;
+            align-items: center;
+            padding: 10px 16px 10px 32px;
+            color: #4a5568;
+            text-decoration: none;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            transition: background 0.2s;
+            font-size: 0.9rem;
+        }
+        
+        .nav-subitem:hover {
+            background: #edf2f7;
+            color: #2d3748;
+        }
+        
+        .nav-subitem.active {
+            background: #4299e1;
+            color: white;
+        }
+        
+        /* 顶栏 */
+        .topbar {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 30px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            left: 250px;
+            right: 0;
+            z-index: 999;
+            gap: 20px;
+        }
+        
+        .topbar-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #4299e1;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        /* 主内容区域 */
+        .main-content {
+            margin-left: 250px;
+            margin-top: 70px;
+            padding: 30px;
+            flex: 1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: #2d3748;
+            margin-bottom: 40px;
+            padding: 40px 0;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .search-box {
+            background: white;
+            padding: 0;
+            border-radius: 8px;
+            margin: 0;
+            box-shadow: none;
+            flex: 1;
+            max-width: 400px;
+            margin: 0 20px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 10px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+            background: #f7fafc;
+        }
+        
+        .search-input:focus {
+            border-color: #4299e1;
+        }
+        
+        .versions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .version-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-left: 4px solid #4299e1;
+        }
+        
+        .version-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0极,0,0.15);
+        }
+        
+        .version-card.release {
+            border-left-color: #48bb78;
+        }
+        
+        .version-card.snapshot {
+            border-left-color: #ed8936;
+        }
+        
+        .version-card.old_beta {
+            border-left-color: #9f7aea;
+        }
+        
+        .version-card.old_alpha {
+            border-left-color: #f56565;
+        }
+        
+        .version-id {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+        
+        .version-type {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+        
+        .type-release {
+            background: #c6f6d5;
+            color: #2f855a;
+        }
+        
+        .type-snapshot {
+            background: #feebc8;
+            color: #c05621;
+        }
+        
+        .type-old_beta {
+            background:极 #e9d8fd;
+            color: #6b46c1;
+        }
+        
+        .type-old_alpha {
+            background: #fed7d7;
+            color: #c53030;
+        }
+        
+        .version-time {
+            color: #718096;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            background: #4299e1;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        
+        .download-btn:hover {
+            background: #3182ce;
+        }
+        
+        .error-message {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 40px 0;
+            border-left: 4px solid #e53e3e;
+        }
+        
+        .loading {
+            text-align: center;
+            color: white;
+            padding: 60px 0;
+            font-size: 1.2rem;
+        }
+        
+        .footer {
+            text-align: center;
+            color: #718096;
+            padding: 40px 0;
+            opacity: 0.8;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 40px;
+        }
+        
+        /* 版本详情模态框样式 */
+        .version-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            cursor: pointer;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 10001;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: #2d3748;
+            font-size: 1.25rem;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #718096;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+        
+        .modal-close:hover {
+            background: #edf2f7;
+            color: #2d3748;
+        }
+        
+        .modal-body {
+            padding: 24px;
+        }
+        
+        .version-info {
+            margin-bottom: 20px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f7fafc;
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+        
+        .info-value {
+            color: #718096;
+        }
+        
+        .download-link {
+            color: #4299e1;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        
+        .download-link:hover {
+            color: #3182ce;
+        }
+        
+        .loading-details {
+            text-align: center;
+            color: #718096;
+            padding: 20px 0;
+        }
+        
+        .error {
+            color: #e53e3e;
+            text-align: center;
+            padding: 10px;
+            background: #fed7d7;
+            border-radius: 6px;
+            border: 1px solid #feb2b2;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .versions-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>Minecraft</h2>
+            </div>
+            
+            <!-- 版本分类 -->
+            <div class="nav-section">
+                    <div class="nav-section-title">版本分类</div>
+                    <div class="nav-item active" data-filter="all">
+                        <span>全版本</span>
+                    </div>
+                    <div class="nav-item" data-filter="release">
+                        <span>正式版</span>
+                    </div>
+                    <div class="nav-item" data-filter="snapshot">
+                        <span>测试版</span>
+                    </div>
+                    <div class="nav-item" data-filter="old_beta old_alpha">
+                        <span>远古版</span>
+                    </div>
+                </div>
+            
+
+        </div>
+
+        <!-- 顶栏 -->
+        <div class="topbar">
+            <div class="topbar-title">Minecraft版本镜像站</div>
+            <div class="search-box">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    placeholder="搜索Minecraft版本..." 
+                    onkeyup="filterVersionsBySearch()"
+                >
+            </div>
+            <div class="user-menu">
+                <div class="user-avatar">A</div>
+            </div>
+        </div>
+
+        <!-- 主内容区域 -->
+        <div class="main-content">
+            <div class="container">
+                <div class="header">
+                    <h1>Minecraft版本镜像站</h1>
+                    <p>获取最新的Minecraft游戏版本</p>
+                </div>
+        
+
+        
+        <div id="content-area">
+            <div class="loading" id="loading">正在加载版本数据...</div>
+        </div>
+        
+                <div class="footer">
+                    <p>数据来源: Mojang官方API | 更新时间: <span id="update-time"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const MOJANG_API_URL = 'https://launchermeta.mojang.com/mc/game/version_manifest.json';
+        
+        // 侧边栏导航功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 版本类型过滤
+            const typeFilters = document.querySelectorAll('.nav-item[data-filter]');
+            typeFilters.forEach(filter => {
+                filter.addEventListener('click', function() {
+                    // 移除其他激活状态
+                    typeFilters.forEach(f => f.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const filterType = this.getAttribute('data-filter');
+                    filterVersions(filterType);
+                });
+            });
+            
+
+            
+
+        });
+        
+        // 版本过滤函数
+        function filterVersions(type) {
+            const versionCards = document.querySelectorAll('.version-card');
+            
+            versionCards.forEach(card => {
+                const versionType = card.classList[1]; // release, snapshot, etc.
+                
+                if (type === 'all') {
+                    card.style.display = 'block';
+                } else if (type === 'old_beta old_alpha') {
+                    // 远古版包含旧测试版和旧Alpha版
+                    if (versionType === 'old_beta' || versionType === 'old_alpha') {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                } else if (versionType === type) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+        
+
+        
+
+        
+        // 页面加载完成后获取版本数据
+document.addEventListener('DOMContentLoaded', function() {
+    loadVersions();
+    document.querySelector('.search-input').focus();
+});
+
+// 从Mojang API获取版本数据
+async function loadVersions() {
+    try {
+        const response = await fetch(MOJANG_API_URL);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP错误: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.versions || !Array.isArray(data.versions)) {
+            throw new Error('无效的API响应格式');
+        }
+        
+        displayVersions(data.versions);
+        document.getElementById('update-time').textContent = new Date().toLocaleString();
+        
+    } catch (error) {
+        showError('无法获取版本数据: ' + error.message);
+    }
+}
+
+// 显示版本列表
+function displayVersions(versions) {
+    const contentArea = document.getElementById('content-area');
+    
+    const versionsGrid = document.createElement('div');
+    versionsGrid.className = 'versions-grid';
+    versionsGrid.id = 'versions-grid';
+    
+    versions.forEach(version => {
+        const card = createVersionCard(version);
+        versionsGrid.appendChild(card);
+    });
+    
+    contentArea.innerHTML = '';
+    contentArea.appendChild(versionsGrid);
+}
+
+// 创建版本卡片
+function createVersionCard(version) {
+    const card = document.createElement('div');
+    card.className = `version-card ${version.type}`;
+    card.setAttribute('data-version', version.id);
+    card.setAttribute('data-type', version.type);
+    
+    const typeNames = {
+        'release': '正式版',
+        'snapshot': '快照版', 
+        'old_beta': '旧测试版',
+        'old_alpha': '旧Alpha版'
+    };
+    
+    const releaseTime = new Date(version.releaseTime).toLocaleString();
+    
+    card.innerHTML = `
+        <div class="version-id">${version.id}</div>
+        <div class="version-type type-${version.type}">
+            ${typeNames[version.type] || version.type}
+        </div>
+        <div class="version-time">
+            发布时间: ${releaseTime}
+        </div>
+        <a href="#" class="download-btn" onclick="downloadVersion('${version.id}')">
+            查看详情
+        </a>
+    `;
+    
+    return card;
+}
+
+// 显示错误信息
+function showError(message) {
+    const contentArea = document.getElementById('content-area');
+    contentArea.innerHTML = `
+        <div class="error-message">
+            <h3>错误</h3>
+            <p>${message}</p>
+            <button onclick="loadVersions()" style="margin-top: 10px; padding: 8px 16px; background: #e53e3e; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                重试
+            </button>
+        </div>
+    `;
+}
+
+// 搜索过滤功能
+        function filterVersionsBySearch() {
+            const searchText = document.querySelector('.search-input').value.toLowerCase();
+            const cards = document.querySelectorAll('.version-card');
+            
+            cards.forEach(card => {
+                const version = card.getAttribute('data-version');
+                const type = card.getAttribute('data-type');
+                
+                if (version.toLowerCase().includes(searchText) || 
+                    type.toLowerCase().includes(searchText)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+// 版本详情功能
+function downloadVersion(versionId) {
+    showVersionDetails(versionId);
+}
+
+// 显示版本详情模态框
+function showVersionDetails(versionId) {
+    // 创建模态框
+    const modal = document.createElement('div');
+    modal.className = 'version-modal';
+    modal.innerHTML = `
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>版本详情 - ${versionId}</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="version-info">
+                    <div class="info-item">
+                        <span class="info-label">版本ID:</span>
+                        <span class="info-value">${versionId}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">类型:</span>
+                        <span class="info-value" id="version-type">加载中...</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">发布时间:</span>
+                        <span class="info-value" id="release-time">加载中...</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">下载链接:</span>
+                        <span class="info-value">
+                            <a href="#" class="download-link" onclick="downloadFile('${versionId}')">点击下载</a>
+                        </span>
+                    </div>
+                </div>
+                <div class="loading-details" id="loading-details">正在加载详细信息...</div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // 模拟加载详细信息
+    setTimeout(() => {
+        loadVersionDetails(versionId);
+    }, 1000);
+    
+    // 点击遮罩层关闭模态框
+    modal.querySelector('.modal-overlay').addEventListener('click', closeModal);
+}
+
+// 加载版本详细信息
+function loadVersionDetails(versionId) {
+    const typeElement = document.getElementById('version-type');
+    const timeElement = document.getElementById('release-time');
+    const loadingElement = document.getElementById('loading-details');
+    
+    // 模拟API调用获取详细信息
+    const versionCards = document.querySelectorAll('.version-card');
+    let versionInfo = null;
+    
+    versionCards.forEach(card => {
+        if (card.getAttribute('data-version') === versionId) {
+            const type = card.getAttribute('data-type');
+            const timeElement = card.querySelector('.version-time');
+            const releaseTime = timeElement ? timeElement.textContent.replace('发布时间: ', '') : '未知';
+            
+            versionInfo = {
+                type: type,
+                releaseTime: releaseTime
+            };
+        }
+    });
+    
+    if (versionInfo) {
+        const typeNames = {
+            'release': '正式版',
+            'snapshot': '快照版', 
+            'old_beta': '旧测试版',
+            'old_alpha': '旧Alpha版'
+        };
+        
+        typeElement.textContent = typeNames[versionInfo.type] || versionInfo.type;
+        timeElement.textContent = versionInfo.releaseTime;
+        loadingElement.style.display = 'none';
+    } else {
+        loadingElement.innerHTML = '<div class="error">无法获取版本信息</div>';
+    }
+}
+
+// 关闭模态框
+function closeModal() {
+    const modal = document.querySelector('.version-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// 下载文件（模拟功能）
+function downloadFile(versionId) {
+    alert('开始下载: ' + versionId + '\n提示: 这是模拟下载功能');
+}
+    </script>
+</body>
+</html>
